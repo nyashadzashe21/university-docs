@@ -39,7 +39,6 @@ export default function VerifyPage({ params }: VerifyPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="university-gradient text-white">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
@@ -66,13 +65,12 @@ export default function VerifyPage({ params }: VerifyPageProps) {
               <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-red-800 mb-2">Document Not Found</h2>
               <p className="text-sm text-red-600">
-                This document could not be found in our system. It may be invalid or have been deleted.
+                This document could not be found in our system.
               </p>
             </div>
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            {/* Verification Status */}
             <div className={`p-8 text-center ${isValid ? "bg-green-50" : "bg-red-50"}`}>
               {isValid ? (
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -89,7 +87,6 @@ export default function VerifyPage({ params }: VerifyPageProps) {
               </p>
             </div>
 
-            {/* Document Details */}
             <div className="p-6 border-t border-gray-200">
               <h3 className="text-lg font-semibold text-navy mb-4">Document Information</h3>
               <div className="space-y-3">
@@ -130,7 +127,6 @@ export default function VerifyPage({ params }: VerifyPageProps) {
               </div>
             </div>
 
-            {/* Security Features */}
             <div className="p-6 bg-navy/5 border-t border-gray-200">
               <div className="flex items-center gap-2 mb-3">
                 <Shield className="w-5 h-5 text-navy" />
@@ -155,10 +151,7 @@ export default function VerifyPage({ params }: VerifyPageProps) {
         )}
 
         <div className="mt-6 text-center">
-          <Link
-            href="/"
-            className="text-navy/60 text-sm hover:text-navy transition-colors"
-          >
+          <Link href="/" className="text-navy/60 text-sm hover:text-navy transition-colors">
             ← Return to {UNIVERSITY.name}
           </Link>
         </div>
