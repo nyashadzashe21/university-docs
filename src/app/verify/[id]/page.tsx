@@ -1,9 +1,11 @@
-"use client";
-
 import { use } from "react";
 import Link from "next/link";
 import { UNIVERSITY } from "@/lib/utils";
 import { CheckCircle, XCircle, Shield, Clock } from "lucide-react";
+
+export function generateStaticParams() {
+  return [{ id: "demo" }];
+}
 
 interface VerifyPageProps {
   params: Promise<{ id: string }>;
