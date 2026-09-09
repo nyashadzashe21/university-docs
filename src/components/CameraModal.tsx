@@ -63,6 +63,11 @@ export default function CameraModal({ onCapture, onClose }: CameraModalProps) {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
+    if (!video.videoWidth || !video.videoHeight) {
+      setError("Camera not ready. Please wait a moment and try again.");
+      return;
+    }
+
     const size = Math.min(video.videoWidth, video.videoHeight);
     const sx = (video.videoWidth - size) / 2;
     const sy = (video.videoHeight - size) / 2;
@@ -202,7 +207,7 @@ export default function CameraModal({ onCapture, onClose }: CameraModalProps) {
                       Position face within the frame
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 mt-4">
+                  <div className="flex items-center justify-between mt-4">
                     <label className="flex items-center gap-2 text-xs text-gray-500">
                       Zoom:
                       <input
@@ -221,6 +226,13 @@ export default function CameraModal({ onCapture, onClose }: CameraModalProps) {
                         className="w-20"
                       />
                     </label>
+                    <button
+                      onClick={capturePhoto}
+                      className="flex items-center gap-2 px-5 py-2.5 navy-bg text-white font-semibold rounded-full hover:bg-dark-navy transition-colors shadow-lg"
+                    >
+                      <Camera className="w-4 h-4" />
+                      Capture
+                    </button>
                   </div>
                 </>
               )}
