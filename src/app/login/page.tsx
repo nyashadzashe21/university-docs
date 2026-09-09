@@ -1,43 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UNIVERSITY } from "@/lib/utils";
-import { Lock, User, Eye, EyeOff } from "lucide-react";
+import { auth } from "@/lib/firebase";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { Lock, User, Eye, EyeOff, Mail, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.push("/dashboard");
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setIsLoading(true);
 
-    // Demo authentication - replace with real auth
-    if (username === "admin" && password === "admin123") {
-      localStorage.setItem("auth", JSON.stringify({
-        user: username,
-        role: "admin",
-        loginTime: new Date().toISOString(),
-      }));
-      router.push("/dashboard");
-    } else if (username === "staff" && password === "staff123") {
-      localStorage.setItem("auth", JSON.stringify({
-        user: username,
-        role: "staff",
-        loginTime: new Date().toISOString(),
-      }));
-      router.push("/dashboard");
-    } else {
-      setError("Invalid credentials. Try admin/admin123 or staff/staff123");
+    try {
+      if (isSignUp) {
+        await createUserWithEmailAndPassword(auth, email, password);
+        setSuccess("Account created! Redirecting...");
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        router.push("/dashboard");
+      }
+    } catch (err: unknown) {
+      const firebaseError = err as { code?: string; message?: string };
+      switch (firebaseError.code) {
+        case "auth/user-not-found":
+          setError("No account found with this email");
+          break;
+        case "auth/wrong-password":
+          setError("Incorrect password");
+          break;
+        case "auth/email-already-in-use":
+          setError("Email already in use");
+          break;
+        case "auth/weak-password":
+          setError("Password must be at least 6 characters");
+          break;
+        case "auth/invalid-email":
+          setError("Invalid email address");
+          break;
+        default:
+          setError(firebaseError.message || "An error occurred");
+      }
     }
     setIsLoading(false);
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      setError("Enter your email first");
+      return;
+    }
+    setError("");
+    setSuccess("");
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setSuccess("Password reset email sent! Check your inbox.");
+    } catch {
+      setError("Failed to send reset email");
+    }
   };
 
   return (
@@ -63,7 +109,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Panel - Login Form */}
+      {/* Right Panel - Auth Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
@@ -76,27 +122,41 @@ export default function LoginPage() {
 
           <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-navy">Staff Portal</h2>
-              <p className="text-gray-500 text-sm mt-1">Sign in to access document generation</p>
+              <h2 className="text-2xl font-bold text-navy">
+                {isSignUp ? "Create Account" : "Staff Portal"}
+              </h2>
+              <p className="text-gray-500 text-sm mt-1">
+                {isSignUp
+                  ? "Sign up for document access"
+                  : "Sign in to access document generation"}
+              </p>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            {success && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                {success}
+              </div>
+            )}
+
+            <form onSubmit={handleAuth} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-navy mb-1">Username</label>
+                <label className="block text-sm font-medium text-navy mb-1">Email</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none transition-colors"
-                    placeholder="Enter username"
+                    placeholder="you@university.edu"
                     required
                   />
                 </div>
@@ -113,6 +173,7 @@ export default function LoginPage() {
                     className="w-full pl-10 pr-12 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none transition-colors"
                     placeholder="Enter password"
                     required
+                    minLength={6}
                   />
                   <button
                     type="button"
@@ -129,22 +190,34 @@ export default function LoginPage() {
                 disabled={isLoading}
                 className="w-full py-3 navy-bg text-white font-semibold rounded-lg hover:bg-dark-navy transition-colors disabled:opacity-50"
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading
+                  ? "Loading..."
+                  : isSignUp
+                  ? "Create Account"
+                  : "Sign In"}
               </button>
             </form>
 
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-500 text-center mb-2">Demo Credentials:</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="text-center p-2 bg-white rounded border border-gray-200">
-                  <p className="font-semibold text-navy">Admin</p>
-                  <p className="text-gray-500">admin / admin123</p>
-                </div>
-                <div className="text-center p-2 bg-white rounded border border-gray-200">
-                  <p className="font-semibold text-navy">Staff</p>
-                  <p className="text-gray-500">staff / staff123</p>
-                </div>
-              </div>
+            <div className="mt-4 text-center space-y-2">
+              <button
+                onClick={handlePasswordReset}
+                className="text-sm text-navy/60 hover:text-navy transition-colors"
+              >
+                Forgot password?
+              </button>
+              <p className="text-sm text-gray-500">
+                {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+                <button
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setError("");
+                    setSuccess("");
+                  }}
+                  className="text-navy font-semibold hover:underline"
+                >
+                  {isSignUp ? "Sign In" : "Sign Up"}
+                </button>
+              </p>
             </div>
           </div>
 

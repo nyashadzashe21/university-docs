@@ -2,14 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { UNIVERSITY, generateStudentId, generateDocId, getIssueDate, getExpirationDate, generateReceiptNumber, type Student, type Course, type Schedule, type TuitionPayment } from "@/lib/utils";
+import { useAuth } from "@/components/AuthProvider";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
+import { UNIVERSITY, generateStudentId, generateDocId, getIssueDate, getExpirationDate, generateReceiptNumber, type Student, type Course } from "@/lib/utils";
+import { saveDocument, getUserDocuments, type DocumentRecord } from "@/lib/documents";
 import IDCard from "@/components/IDCard";
 import ClassSchedule from "@/components/Schedule";
 import Receipt from "@/components/Receipt";
 import DocumentPreview from "@/components/DocumentPreview";
 import AIAssistant from "@/components/AIAssistant";
-import { LogOut, CreditCard, Calendar, FileText, Plus, Trash2, User } from "lucide-react";
+import { LogOut, CreditCard, Calendar, Plus, Trash2, User, FileText, Loader2 } from "lucide-react";
+import { Timestamp } from "firebase/firestore";
 
 type DocumentType = "id-card" | "schedule" | "receipt";
 
@@ -22,9 +26,10 @@ const DEMO_COURSES: Course[] = [
 
 export default function Dashboard() {
   const router = useRouter();
-  const [user, setUser] = useState<{ user: string; role: string } | null>(null);
+  const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<DocumentType>("id-card");
-  const [generatedDocs, setGeneratedDocs] = useState<Array<{ id: string; type: string; name: string; date: string }>>([]);
+  const [generatedDocs, setGeneratedDocs] = useState<DocumentRecord[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(true);
 
   // ID Card Form
   const [student, setStudent] = useState<Student>({
@@ -58,18 +63,54 @@ export default function Dashboard() {
   const [receiptDocId, setReceiptDocId] = useState(generateDocId());
   const [showReceiptPreview, setShowReceiptPreview] = useState(false);
 
+  // Redirect if not logged in
   useEffect(() => {
-    const auth = localStorage.getItem("auth");
-    if (!auth) {
+    if (!loading && !user) {
       router.push("/login");
-    } else {
-      setUser(JSON.parse(auth));
     }
-  }, [router]);
+  }, [user, loading, router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
+  // Load user documents
+  useEffect(() => {
+    if (user) {
+      loadDocuments();
+    }
+  }, [user]);
+
+  const loadDocuments = async () => {
+    if (!user) return;
+    setLoadingDocs(true);
+    try {
+      const docs = await getUserDocuments(user.uid);
+      setGeneratedDocs(docs);
+    } catch (error) {
+      console.error("Failed to load documents:", error);
+    }
+    setLoadingDocs(false);
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
     router.push("/login");
+  };
+
+  const saveToFirestore = async (type: DocumentType, studentName: string, studentId: string, docId: string, data: Record<string, unknown>) => {
+    if (!user) return;
+    try {
+      await saveDocument({
+        type,
+        studentName,
+        studentId,
+        docId,
+        data,
+        generatedBy: user.uid,
+        generatedAt: Timestamp.now(),
+        status: "active",
+      });
+      loadDocuments();
+    } catch (error) {
+      console.error("Failed to save document:", error);
+    }
   };
 
   const addCourse = () => {
@@ -93,34 +134,19 @@ export default function Dashboard() {
     setCourses(updated);
   };
 
-  const generateIDCard = () => {
+  const generateIDCard = async () => {
     setShowIDPreview(true);
-    setGeneratedDocs(prev => [...prev, {
-      id: idDocId,
-      type: "ID Card",
-      name: `${student.firstName} ${student.lastName}`,
-      date: new Date().toLocaleString(),
-    }]);
+    await saveToFirestore("id-card", `${student.firstName} ${student.lastName}`, student.studentId, idDocId, student as unknown as Record<string, unknown>);
   };
 
-  const generateSchedule = () => {
+  const generateSchedule = async () => {
     setShowSchedulePreview(true);
-    setGeneratedDocs(prev => [...prev, {
-      id: scheduleDocId,
-      type: "Schedule",
-      name: scheduleStudent.name,
-      date: new Date().toLocaleString(),
-    }]);
+    await saveToFirestore("schedule", scheduleStudent.name, scheduleStudent.studentId, scheduleDocId, { courses, term: scheduleTerm, year: scheduleYear });
   };
 
-  const generateReceipt = () => {
+  const generateReceipt = async () => {
     setShowReceiptPreview(true);
-    setGeneratedDocs(prev => [...prev, {
-      id: receiptDocId,
-      type: "Receipt",
-      name: receiptStudent.name,
-      date: new Date().toLocaleString(),
-    }]);
+    await saveToFirestore("receipt", receiptStudent.name, receiptStudent.studentId, receiptDocId, { term: receiptTerm, year: receiptYear, amount: receiptAmount });
   };
 
   const resetIDForm = () => {
@@ -191,6 +217,14 @@ export default function Dashboard() {
     if (data.amount) setReceiptAmount(data.amount);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 text-navy animate-spin" />
+      </div>
+    );
+  }
+
   if (!user) return null;
 
   return (
@@ -210,8 +244,8 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-semibold">{user.user}</p>
-                <p className="text-gold/70 text-xs capitalize">{user.role}</p>
+                <p className="text-sm font-semibold">{user.email}</p>
+                <p className="text-gold/70 text-xs">Staff Account</p>
               </div>
               <button
                 onClick={handleLogout}
@@ -269,21 +303,33 @@ export default function Dashboard() {
               </nav>
 
               {/* Recent Documents */}
-              {generatedDocs.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="text-sm font-semibold text-navy/60 uppercase tracking-wider mb-3 px-3">
-                    Recent
-                  </h3>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {generatedDocs.slice(-5).reverse().map((doc) => (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-sm font-semibold text-navy/60 uppercase tracking-wider mb-3 px-3">
+                  Recent Documents
+                </h3>
+                {loadingDocs ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="w-4 h-4 text-navy animate-spin" />
+                  </div>
+                ) : generatedDocs.length === 0 ? (
+                  <p className="text-xs text-gray-400 px-3">No documents yet</p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {generatedDocs.slice(0, 10).map((doc) => (
                       <div key={doc.id} className="px-3 py-2 bg-gray-50 rounded-lg text-xs">
-                        <p className="font-semibold text-navy">{doc.type}</p>
-                        <p className="text-gray-500 truncate">{doc.name}</p>
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-3 h-3 text-navy" />
+                          <p className="font-semibold text-navy capitalize">{doc.type.replace("-", " ")}</p>
+                        </div>
+                        <p className="text-gray-500 truncate mt-1">{doc.studentName}</p>
+                        <p className="text-gray-400 text-[10px]">
+                          {doc.generatedAt?.toDate?.()?.toLocaleDateString() || "Just now"}
+                        </p>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 

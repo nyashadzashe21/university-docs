@@ -16,7 +16,8 @@
     "jspdf": "^2.5.2",
     "qrcode.react": "^4.2.0",
     "lucide-react": "^0.468.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "firebase": "^11.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
