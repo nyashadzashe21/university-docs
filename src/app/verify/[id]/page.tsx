@@ -4,11 +4,7 @@ import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { UNIVERSITY } from "@/lib/utils";
 import { getDocumentByDocId, type DocumentRecord } from "@/lib/documents";
-import { CheckCircle, XCircle, Shield, Clock, Loader2, FileText } from "lucide-react";
-
-export function generateStaticParams() {
-  return [{ id: "demo" }];
-}
+import { CheckCircle, XCircle, Shield, Clock, Loader2 } from "lucide-react";
 
 interface VerifyPageProps {
   params: Promise<{ id: string }>;
