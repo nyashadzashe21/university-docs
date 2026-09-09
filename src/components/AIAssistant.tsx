@@ -9,9 +9,10 @@ interface AIAssistantProps {
   currentData: Record<string, string>;
   onFillData: (data: Record<string, string>) => void;
   onFillCourses?: (courses: Array<{ code: string; name: string; instructor: string; schedule: string; room: string; credits: number }>) => void;
+  universityName?: string;
 }
 
-export default function AIAssistant({ documentType, currentData, onFillData, onFillCourses }: AIAssistantProps) {
+export default function AIAssistant({ documentType, currentData, onFillData, onFillCourses, universityName = "the university" }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [analysis, setAnalysis] = useState<{ score: number; issues: string[]; suggestions: string[] } | null>(null);
@@ -22,7 +23,7 @@ export default function AIAssistant({ documentType, currentData, onFillData, onF
     setIsLoading(true);
     setLastAction("smart-fill");
     try {
-      const filled = await aiSmartFill(currentData, documentType);
+      const filled = await aiSmartFill(currentData, documentType, universityName);
       onFillData(filled);
     } catch (error) {
       console.error("Smart fill failed:", error);
@@ -34,7 +35,7 @@ export default function AIAssistant({ documentType, currentData, onFillData, onF
     setIsLoading(true);
     setLastAction("analyze");
     try {
-      const result = await aiAnalyzeDocument(currentData, documentType);
+      const result = await aiAnalyzeDocument(currentData, documentType, universityName);
       setAnalysis(result);
     } catch (error) {
       console.error("Analysis failed:", error);
@@ -46,7 +47,7 @@ export default function AIAssistant({ documentType, currentData, onFillData, onF
     setIsLoading(true);
     setLastAction("validate");
     try {
-      const result = await aiValidateStudent(currentData);
+      const result = await aiValidateStudent(currentData, universityName);
       setValidation(result);
     } catch (error) {
       console.error("Validation failed:", error);
@@ -61,7 +62,7 @@ export default function AIAssistant({ documentType, currentData, onFillData, onF
     try {
       const department = currentData.department || "Computer Science";
       const year = currentData.year || "Sophomore";
-      const courses = await aiSuggestCourses(department, year);
+      const courses = await aiSuggestCourses(department, year, universityName);
       if (courses.length > 0) {
         onFillCourses(courses);
       }
@@ -75,7 +76,7 @@ export default function AIAssistant({ documentType, currentData, onFillData, onF
     setIsLoading(true);
     setLastAction("generate-complete");
     try {
-      const complete = await aiGenerateCompleteDocument(documentType, currentData);
+      const complete = await aiGenerateCompleteDocument(documentType, currentData, universityName);
       onFillData(complete);
     } catch (error) {
       console.error("Generate complete failed:", error);

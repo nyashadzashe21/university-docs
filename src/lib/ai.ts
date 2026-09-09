@@ -39,9 +39,10 @@ async function callGemini(prompt: string): Promise<string> {
 
 export async function aiSmartFill(
   partialData: Record<string, string>,
-  documentType: "id-card" | "schedule" | "receipt"
+  documentType: "id-card" | "schedule" | "receipt",
+  universityName: string = "the university"
 ): Promise<Record<string, string>> {
-  const prompt = `You are a university document assistant for Pacific Ridge University.
+  const prompt = `You are a university document assistant for ${universityName}.
 Based on the partial information provided, generate realistic and appropriate values for empty fields.
 Return ONLY a JSON object with the same keys, filling in empty strings with sensible values.
 Do not change any fields that already have values.
@@ -50,7 +51,7 @@ Partial ${documentType} data:
 ${JSON.stringify(partialData, null, 2)}
 
 Rules:
-- Student IDs follow format: PRU[2-digit year][5-digit number]
+- Student IDs follow format: [2-letter prefix][2-digit year][5-digit number]
 - Use realistic department names: Computer Science, Engineering, Business, Liberal Arts, Sciences, Medicine
 - Use realistic course codes and names
 - Keep names professional and realistic
@@ -68,9 +69,10 @@ Rules:
 
 export async function aiAnalyzeDocument(
   documentData: Record<string, unknown>,
-  documentType: "id-card" | "schedule" | "receipt"
+  documentType: "id-card" | "schedule" | "receipt",
+  universityName: string = "the university"
 ): Promise<{ score: number; issues: string[]; suggestions: string[] }> {
-  const prompt = `You are a university document quality analyzer for Pacific Ridge University.
+  const prompt = `You are a university document quality analyzer for ${universityName}.
 Analyze this ${documentType} document data and provide:
 1. A completeness score from 0-100
 2. A list of issues found (empty array if none)
@@ -101,9 +103,10 @@ Return ONLY a JSON object in this format:
 
 export async function aiSuggestCourses(
   department: string,
-  year: string
+  year: string,
+  universityName: string = "the university"
 ): Promise<Array<{ code: string; name: string; instructor: string; schedule: string; room: string; credits: number }>> {
-  const prompt = `You are a university course scheduler for Pacific Ridge University.
+  const prompt = `You are a university course scheduler for ${universityName}.
 Generate 4-5 realistic courses for a ${year} student in the ${department} department.
 
 Return ONLY a JSON array of course objects:
@@ -136,9 +139,10 @@ Rules:
 }
 
 export async function aiValidateStudent(
-  studentData: Record<string, string>
+  studentData: Record<string, string>,
+  universityName: string = "the university"
 ): Promise<{ valid: boolean; errors: string[]; warnings: string[] }> {
-  const prompt = `You are a university student data validator for Pacific Ridge University.
+  const prompt = `You are a university student data validator for ${universityName}.
 Validate this student information and return any errors or warnings.
 
 Student data:
@@ -169,14 +173,15 @@ Check for:
 
 export async function aiGenerateCompleteDocument(
   documentType: "id-card" | "schedule" | "receipt",
-  hints: Record<string, string>
+  hints: Record<string, string>,
+  universityName: string = "the university"
 ): Promise<Record<string, string>> {
-  const prompt = `You are a university document generator for Pacific Ridge University.
+  const prompt = `You are a university document generator for ${universityName}.
 Generate a complete, realistic ${documentType} document based on these hints:
 ${JSON.stringify(hints, null, 2)}
 
 Return ONLY a JSON object with all required fields filled in with realistic data.
-Make sure all fields are appropriate for a ${documentType} document at Pacific Ridge University.
+Make sure all fields are appropriate for a ${documentType} document at ${universityName}.
 Return ONLY the JSON, no explanation.`;
 
   const response = await callGemini(prompt);

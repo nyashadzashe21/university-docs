@@ -558,6 +558,7 @@ export default function Dashboard() {
                         documentType="id-card"
                         currentData={student as unknown as Record<string, string>}
                         onFillData={handleAIFillIDCard}
+                        universityName={university.name}
                       />
                     </div>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -749,6 +750,7 @@ export default function Dashboard() {
                         currentData={{ ...scheduleStudent, department: "Computer Science", year: "Sophomore" }}
                         onFillData={handleAIFillSchedule}
                         onFillCourses={handleAIFillCourses}
+                        universityName={university.name}
                       />
                     </div>
                     <div className="grid md:grid-cols-3 gap-6 mb-6">
@@ -928,6 +930,7 @@ export default function Dashboard() {
                         documentType="receipt"
                         currentData={{ ...receiptStudent, term: receiptTerm, year: receiptYear, amount: receiptAmount }}
                         onFillData={handleAIFillReceipt}
+                        universityName={university.name}
                       />
                     </div>
                     <div className="grid md:grid-cols-2 gap-6 mb-6">
