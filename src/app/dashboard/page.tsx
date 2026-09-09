@@ -298,7 +298,7 @@ export default function Dashboard() {
                       <h2 className="text-xl font-bold text-navy">Generate Student ID Card</h2>
                       <AIAssistant
                         documentType="id-card"
-                        currentData={student}
+                        currentData={student as unknown as Record<string, string>}
                         onFillData={handleAIFillIDCard}
                       />
                     </div>
