@@ -24,13 +24,11 @@ export interface DocumentRecord {
   status: "active" | "revoked";
 }
 
-// Save a generated document
-export async function saveDocument(doc: Omit<DocumentRecord, "id">) {
-  const docRef = await addDoc(collection(db, "documents"), doc);
+export async function saveDocument(docData: Omit<DocumentRecord, "id">) {
+  const docRef = await addDoc(collection(db, "documents"), docData);
   return docRef.id;
 }
 
-// Get all documents for a user
 export async function getUserDocuments(userId: string) {
   const q = query(
     collection(db, "documents"),
@@ -38,26 +36,24 @@ export async function getUserDocuments(userId: string) {
     orderBy("generatedAt", "desc")
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  return snapshot.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
   })) as DocumentRecord[];
 }
 
-// Get all documents (admin)
 export async function getAllDocuments() {
   const q = query(
     collection(db, "documents"),
     orderBy("generatedAt", "desc")
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  return snapshot.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
   })) as DocumentRecord[];
 }
 
-// Get document by docId (for verification)
 export async function getDocumentByDocId(docId: string) {
   const q = query(
     collection(db, "documents"),
@@ -65,11 +61,10 @@ export async function getDocumentByDocId(docId: string) {
   );
   const snapshot = await getDocs(q);
   if (snapshot.empty) return null;
-  const doc = snapshot.docs[0];
-  return { id: doc.id, ...doc.data() } as DocumentRecord;
+  const d = snapshot.docs[0];
+  return { id: d.id, ...d.data() } as DocumentRecord;
 }
 
-// Revoke a document
 export async function revokeDocument(docId: string) {
   const q = query(
     collection(db, "documents"),
@@ -77,13 +72,11 @@ export async function revokeDocument(docId: string) {
   );
   const snapshot = await getDocs(q);
   if (!snapshot.empty) {
-    await updateDoc(doc(db, "documents", snapshot.docs[0].id), {
-      status: "revoked",
-    });
+    const docRef = doc(db, "documents", snapshot.docs[0].id);
+    await updateDoc(docRef, { status: "revoked" });
   }
 }
 
-// Delete a document
 export async function deleteDocument(docId: string) {
   const q = query(
     collection(db, "documents"),
@@ -91,6 +84,7 @@ export async function deleteDocument(docId: string) {
   );
   const snapshot = await getDocs(q);
   if (!snapshot.empty) {
-    await deleteDoc(doc(db, "documents", snapshot.docs[0].id));
+    const docRef = doc(db, "documents", snapshot.docs[0].id);
+    await deleteDoc(docRef);
   }
 }
