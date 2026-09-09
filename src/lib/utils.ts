@@ -48,14 +48,31 @@ export interface GeneratedDocument {
   expirationDate: string;
 }
 
-export const UNIVERSITY = {
-  name: "Pacific Ridge University",
-  shortName: "PRU",
-  motto: "Excellence Through Knowledge",
-  established: "1892",
-  address: "1200 Academic Drive, Pacific Ridge, CA 94301",
-  phone: "(650) 555-0192",
-  website: "www.pacificridge.edu",
+export interface UniversityInfo {
+  name: string;
+  shortName: string;
+  motto: string;
+  established: string;
+  address: string;
+  phone: string;
+  website: string;
+  logo: string;
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
+}
+
+export const DEFAULT_UNIVERSITY: UniversityInfo = {
+  name: "",
+  shortName: "",
+  motto: "",
+  established: "",
+  address: "",
+  phone: "",
+  website: "",
+  logo: "",
   colors: {
     primary: "#1a1a6e",
     secondary: "#c5a55a",

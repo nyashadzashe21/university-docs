@@ -1,7 +1,7 @@
 "use client";
 
 import { QRCodeSVG } from "qrcode.react";
-import { UNIVERSITY, type Schedule as ScheduleType } from "@/lib/utils";
+import { type Schedule as ScheduleType, type UniversityInfo } from "@/lib/utils";
 
 interface ScheduleProps {
   schedule: ScheduleType;
@@ -9,6 +9,7 @@ interface ScheduleProps {
   studentId: string;
   issueDate: string;
   docId: string;
+  university: UniversityInfo;
 }
 
 export default function ClassSchedule({
@@ -17,35 +18,41 @@ export default function ClassSchedule({
   studentId,
   issueDate,
   docId,
+  university,
 }: ScheduleProps) {
   const verificationUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/verify/${docId}`;
+  const initials = university.shortName?.[0] || university.name?.[0] || "?";
 
   return (
     <div className="relative w-[8.5in] min-h-[11in] bg-white document-shadow">
       {/* Watermark */}
-      <div className="watermark">{UNIVERSITY.shortName}</div>
+      <div className="watermark text-white/5">{university.shortName || university.name}</div>
 
       {/* Header */}
-      <div className="university-gradient p-6 text-white">
+      <div className="p-6 text-white" style={{ background: `linear-gradient(135deg, ${university.colors.primary}, ${university.colors.primary}dd)` }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full gold-bg flex items-center justify-center">
-              <span className="text-navy text-2xl font-bold">{UNIVERSITY.shortName[0]}</span>
-            </div>
+            {university.logo ? (
+              <img src={university.logo} alt="Logo" className="w-16 h-16 rounded-full object-cover border-2" style={{ borderColor: university.colors.secondary }} />
+            ) : (
+              <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: university.colors.secondary }}>
+                <span className="text-navy text-2xl font-bold">{initials}</span>
+              </div>
+            )}
             <div>
-              <h1 className="text-2xl font-bold">{UNIVERSITY.name}</h1>
-              <p className="text-gold text-sm tracking-wider">{UNIVERSITY.motto}</p>
+              <h1 className="text-2xl font-bold">{university.name || "University Name"}</h1>
+              <p className="text-sm tracking-wider" style={{ color: university.colors.secondary }}>{university.motto || "Motto"}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-gold text-sm font-semibold">ACADEMIC SCHEDULE</p>
-            <p className="text-xs text-gold/70">{schedule.term} {schedule.academicYear}</p>
+            <p className="text-sm font-semibold" style={{ color: university.colors.secondary }}>ACADEMIC SCHEDULE</p>
+            <p className="text-xs text-white/70">{schedule.term} {schedule.academicYear}</p>
           </div>
         </div>
       </div>
 
       {/* Gold Divider */}
-      <div className="h-1 gold-bg" />
+      <div className="h-1" style={{ backgroundColor: university.colors.secondary }} />
 
       {/* Student Info */}
       <div className="p-6 border-b-2 border-navy/10">
@@ -74,7 +81,7 @@ export default function ClassSchedule({
         <h2 className="text-lg font-bold text-navy mb-4">Enrolled Courses</h2>
         <table className="w-full border-collapse">
           <thead>
-            <tr className="university-gradient text-white">
+            <tr className="text-white" style={{ background: `linear-gradient(135deg, ${university.colors.primary}, ${university.colors.primary}dd)` }}>
               <th className="p-2 text-left text-xs font-semibold">Course Code</th>
               <th className="p-2 text-left text-xs font-semibold">Course Name</th>
               <th className="p-2 text-left text-xs font-semibold">Instructor</th>
@@ -113,8 +120,8 @@ export default function ClassSchedule({
       <div className="absolute bottom-0 left-0 right-0 p-6 border-t-2 border-navy/10 bg-gray-50">
         <div className="flex justify-between items-center">
           <div>
-            <p className="text-[10px] text-navy/60">{UNIVERSITY.address}</p>
-            <p className="text-[10px] text-navy/60">{UNIVERSITY.phone} | {UNIVERSITY.website}</p>
+            <p className="text-[10px] text-navy/60">{university.address || "Address"}</p>
+            <p className="text-[10px] text-navy/60">{university.phone || "Phone"} | {university.website || "Website"}</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
@@ -127,7 +134,7 @@ export default function ClassSchedule({
                 size={56}
                 level="M"
                 bgColor="white"
-                fgColor="#1a1a6e"
+                fgColor={university.colors.primary}
               />
             </div>
           </div>

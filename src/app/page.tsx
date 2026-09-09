@@ -1,29 +1,20 @@
 import Link from "next/link";
-import { UNIVERSITY } from "@/lib/utils";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <header className="university-gradient text-white">
-        {/* Top Bar */}
-        <div className="border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-6 py-2 flex justify-between items-center text-xs">
-            <p className="text-gold/80">{UNIVERSITY.address}</p>
-            <p className="text-gold/80">{UNIVERSITY.phone}</p>
-          </div>
-        </div>
-
         {/* Navigation */}
         <nav className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full gold-bg flex items-center justify-center">
-                <span className="text-navy text-xl font-bold">{UNIVERSITY.shortName[0]}</span>
+                <span className="text-navy text-xl font-bold">D</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold">{UNIVERSITY.name}</h1>
-                <p className="text-gold text-xs tracking-wider">{UNIVERSITY.motto}</p>
+                <h1 className="text-xl font-bold">Document Management System</h1>
+                <p className="text-gold text-xs tracking-wider">University Document Generator</p>
               </div>
             </div>
             <div className="flex items-center gap-6">
@@ -46,14 +37,14 @@ export default function Home() {
             </h2>
             <p className="text-lg text-white/80 mb-8">
               Generate official student identification cards, class schedules, and tuition payment
-              receipts with built-in verification and anti-tamper protection.
+              receipts with built-in verification and anti-tamper protection. Enter your own university details and customize everything.
             </p>
             <div className="flex gap-4">
               <Link
                 href="/login"
                 className="px-8 py-3 gold-bg text-navy font-semibold rounded-lg hover:bg-gold/90 transition-colors text-lg"
               >
-                Access Portal
+                Get Started
               </Link>
               <a
                 href="#features"
@@ -84,7 +75,7 @@ export default function Home() {
               <h4 className="text-xl font-bold text-navy mb-2">Student ID Cards</h4>
               <p className="text-gray-600">
                 Professional photo ID cards with holographic effects, QR verification, and
-                automatic expiration dates.
+                automatic expiration dates. Upload your own logo.
               </p>
             </div>
 
@@ -97,7 +88,7 @@ export default function Home() {
               <h4 className="text-xl font-bold text-navy mb-2">Class Schedules</h4>
               <p className="text-gray-600">
                 Official academic schedules with course details, instructor information, and
-                term-specific formatting.
+                term-specific formatting. Fully customizable.
               </p>
             </div>
 
@@ -110,15 +101,49 @@ export default function Home() {
               <h4 className="text-xl font-bold text-navy mb-2">Tuition Receipts</h4>
               <p className="text-gray-600">
                 Official payment receipts with QR verification, transaction details, and
-                audit trail compliance.
+                audit trail compliance. Your branding included.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Security Section */}
+      {/* How It Works Section */}
       <section className="py-20 bg-navy/5">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <p className="text-gold text-sm tracking-widest mb-2">HOW IT WORKS</p>
+            <h3 className="text-3xl font-bold text-navy">Three Simple Steps</h3>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full navy-bg flex items-center justify-center mx-auto mb-4">
+                <span className="text-gold text-2xl font-bold">1</span>
+              </div>
+              <h4 className="text-lg font-bold text-navy mb-2">Enter Your Details</h4>
+              <p className="text-gray-600">Add your university name, logo, address, and contact information. Colors are fully customizable.</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full navy-bg flex items-center justify-center mx-auto mb-4">
+                <span className="text-gold text-2xl font-bold">2</span>
+              </div>
+              <h4 className="text-lg font-bold text-navy mb-2">Add Student Info</h4>
+              <p className="text-gray-600">Fill in student details, upload a photo using your camera or file picker, and add courses.</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full navy-bg flex items-center justify-center mx-auto mb-4">
+                <span className="text-gold text-2xl font-bold">3</span>
+              </div>
+              <h4 className="text-lg font-bold text-navy mb-2">Generate & Export</h4>
+              <p className="text-gray-600">Download as PNG, JPEG, or PDF. Print directly. Each document includes a QR code for verification.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Security Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
@@ -163,14 +188,14 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div className="bg-white p-8 rounded-xl shadow-lg">
+            <div className="bg-navy/5 p-8 rounded-xl">
               <div className="text-center">
                 <div className="w-20 h-20 rounded-full gold-bg flex items-center justify-center mx-auto mb-4">
-                  <span className="text-navy text-3xl font-bold">{UNIVERSITY.shortName[0]}</span>
+                  <span className="text-navy text-3xl font-bold">D</span>
                 </div>
-                <h4 className="text-xl font-bold text-navy mb-2">{UNIVERSITY.name}</h4>
-                <p className="text-gold text-sm mb-4">Est. {UNIVERSITY.established}</p>
-                <p className="text-gray-600 text-sm mb-6">{UNIVERSITY.motto}</p>
+                <h4 className="text-xl font-bold text-navy mb-2">Document Management System</h4>
+                <p className="text-gold text-sm mb-4">Your University, Your Branding</p>
+                <p className="text-gray-600 text-sm mb-6">Enter your institution details and generate professional documents in seconds.</p>
                 <div className="border-t border-gray-200 pt-4">
                   <p className="text-xs text-gray-500">Document Management System v1.0</p>
                   <p className="text-xs text-gray-500">Authorized Staff Access Only</p>
@@ -187,15 +212,15 @@ export default function Home() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full gold-bg flex items-center justify-center">
-                <span className="text-navy text-sm font-bold">{UNIVERSITY.shortName[0]}</span>
+                <span className="text-navy text-sm font-bold">D</span>
               </div>
               <div>
-                <p className="font-semibold">{UNIVERSITY.name}</p>
-                <p className="text-gold/70 text-xs">{UNIVERSITY.motto}</p>
+                <p className="font-semibold">Document Management System</p>
+                <p className="text-gold/70 text-xs">University Document Generator</p>
               </div>
             </div>
             <p className="text-gold/70 text-sm">
-              © {new Date().getFullYear()} {UNIVERSITY.name}. All rights reserved.
+              © {new Date().getFullYear()} Document Management System. All rights reserved.
             </p>
           </div>
         </div>

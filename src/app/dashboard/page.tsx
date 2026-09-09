@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
-import { UNIVERSITY, generateStudentId, generateDocId, getIssueDate, getExpirationDate, generateReceiptNumber, type Student, type Course } from "@/lib/utils";
+import { DEFAULT_UNIVERSITY, generateStudentId, generateDocId, getIssueDate, getExpirationDate, generateReceiptNumber, type Student, type Course, type UniversityInfo } from "@/lib/utils";
 import { saveDocument, getUserDocuments, type DocumentRecord } from "@/lib/documents";
 import IDCard from "@/components/IDCard";
 import ClassSchedule from "@/components/Schedule";
@@ -13,10 +13,10 @@ import Receipt from "@/components/Receipt";
 import DocumentPreview from "@/components/DocumentPreview";
 import AIAssistant from "@/components/AIAssistant";
 import CameraModal from "@/components/CameraModal";
-import { LogOut, CreditCard, Calendar, Plus, Trash2, User, FileText, Loader2, Camera } from "lucide-react";
+import { LogOut, CreditCard, Calendar, Plus, Trash2, User, FileText, Loader2, Camera, Building2 } from "lucide-react";
 import { Timestamp } from "firebase/firestore";
 
-type DocumentType = "id-card" | "schedule" | "receipt";
+type DocumentType = "id-card" | "schedule" | "receipt" | "university";
 
 const DEMO_COURSES: Course[] = [
   { code: "CS 101", name: "Introduction to Computer Science", instructor: "Dr. Sarah Chen", schedule: "MWF 9:00-9:50 AM", room: "Science Hall 201", credits: 3 },
@@ -28,9 +28,19 @@ const DEMO_COURSES: Course[] = [
 export default function Dashboard() {
   const router = useRouter();
   const { user, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState<DocumentType>("id-card");
+  const [activeTab, setActiveTab] = useState<DocumentType>("university");
   const [generatedDocs, setGeneratedDocs] = useState<DocumentRecord[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
+
+  // University Info
+  const [university, setUniversity] = useState<UniversityInfo>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("universityInfo");
+      return saved ? JSON.parse(saved) : DEFAULT_UNIVERSITY;
+    }
+    return DEFAULT_UNIVERSITY;
+  });
+  const [showLogoModal, setShowLogoModal] = useState(false);
 
   // ID Card Form
   const [student, setStudent] = useState<Student>({
@@ -64,6 +74,11 @@ export default function Dashboard() {
   const [receiptAmount, setReceiptAmount] = useState("5000.00");
   const [receiptDocId, setReceiptDocId] = useState(generateDocId());
   const [showReceiptPreview, setShowReceiptPreview] = useState(false);
+
+  // Save university info to localStorage
+  useEffect(() => {
+    localStorage.setItem("universityInfo", JSON.stringify(university));
+  }, [university]);
 
   // Redirect if not logged in
   useEffect(() => {
@@ -229,25 +244,32 @@ export default function Dashboard() {
 
   if (!user) return null;
 
+  const initials = university.shortName?.[0] || university.name?.[0] || "?";
+  const uniName = university.name || "Your University";
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="university-gradient text-white shadow-lg">
+      <header className="text-white shadow-lg" style={{ background: `linear-gradient(135deg, ${university.colors.primary}, ${university.colors.primary}dd)` }}>
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full gold-bg flex items-center justify-center">
-                <span className="text-navy text-sm font-bold">{UNIVERSITY.shortName[0]}</span>
-              </div>
+              {university.logo ? (
+                <img src={university.logo} alt="Logo" className="w-10 h-10 rounded-full object-cover border-2" style={{ borderColor: university.colors.secondary }} />
+              ) : (
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: university.colors.secondary }}>
+                  <span className="text-sm font-bold" style={{ color: university.colors.primary }}>{initials}</span>
+                </div>
+              )}
               <div>
-                <h1 className="text-lg font-bold">{UNIVERSITY.name}</h1>
-                <p className="text-gold text-xs">Document Management System</p>
+                <h1 className="text-lg font-bold">{uniName}</h1>
+                <p className="text-xs" style={{ color: university.colors.secondary }}>Document Management System</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-semibold">{user.email}</p>
-                <p className="text-gold/70 text-xs">Staff Account</p>
+                <p className="text-xs text-white/70">Staff Account</p>
               </div>
               <button
                 onClick={handleLogout}
@@ -266,9 +288,20 @@ export default function Dashboard() {
           <div className="w-64 flex-shrink-0">
             <div className="bg-white rounded-xl shadow-sm p-4 sticky top-8">
               <h2 className="text-sm font-semibold text-navy/60 uppercase tracking-wider mb-4 px-3">
-                Generate Document
+                Settings & Documents
               </h2>
               <nav className="space-y-1">
+                <button
+                  onClick={() => setActiveTab("university")}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                    activeTab === "university"
+                      ? "navy-bg text-white"
+                      : "text-navy hover:bg-navy/5"
+                  }`}
+                >
+                  <Building2 className="w-5 h-5" />
+                  <span className="font-medium">University Details</span>
+                </button>
                 <button
                   onClick={() => { setActiveTab("id-card"); setShowIDPreview(false); }}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
@@ -337,6 +370,183 @@ export default function Dashboard() {
 
           {/* Main Content */}
           <div className="flex-1">
+            {/* University Details Form */}
+            {activeTab === "university" && (
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h2 className="text-xl font-bold text-navy mb-6">University Details</h2>
+                <p className="text-sm text-gray-500 mb-6">Enter your institution details. These will appear on all generated documents.</p>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">University Name *</label>
+                      <input
+                        type="text"
+                        value={university.name}
+                        onChange={(e) => setUniversity({ ...university, name: e.target.value })}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none"
+                        placeholder="e.g. Harvard University"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">Short Name / Abbreviation *</label>
+                      <input
+                        type="text"
+                        value={university.shortName}
+                        onChange={(e) => setUniversity({ ...university, shortName: e.target.value.toUpperCase() })}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none"
+                        placeholder="e.g. HU"
+                        maxLength={6}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">Motto</label>
+                      <input
+                        type="text"
+                        value={university.motto}
+                        onChange={(e) => setUniversity({ ...university, motto: e.target.value })}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none"
+                        placeholder="e.g. Veritas"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">Established Year</label>
+                      <input
+                        type="text"
+                        value={university.established}
+                        onChange={(e) => setUniversity({ ...university, established: e.target.value })}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none"
+                        placeholder="e.g. 1636"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">Address</label>
+                      <input
+                        type="text"
+                        value={university.address}
+                        onChange={(e) => setUniversity({ ...university, address: e.target.value })}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none"
+                        placeholder="e.g. 1200 Academic Drive, Cambridge, MA 02138"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">Phone</label>
+                      <input
+                        type="text"
+                        value={university.phone}
+                        onChange={(e) => setUniversity({ ...university, phone: e.target.value })}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none"
+                        placeholder="e.g. (617) 555-0100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">Website</label>
+                      <input
+                        type="text"
+                        value={university.website}
+                        onChange={(e) => setUniversity({ ...university, website: e.target.value })}
+                        className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none"
+                        placeholder="e.g. www.harvard.edu"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">Primary Color</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={university.colors.primary}
+                          onChange={(e) => setUniversity({ ...university, colors: { ...university.colors, primary: e.target.value } })}
+                          className="w-12 h-10 rounded cursor-pointer border-2 border-gray-200"
+                        />
+                        <input
+                          type="text"
+                          value={university.colors.primary}
+                          onChange={(e) => setUniversity({ ...university, colors: { ...university.colors, primary: e.target.value } })}
+                          className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none font-mono text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">Secondary Color</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={university.colors.secondary}
+                          onChange={(e) => setUniversity({ ...university, colors: { ...university.colors, secondary: e.target.value } })}
+                          className="w-12 h-10 rounded cursor-pointer border-2 border-gray-200"
+                        />
+                        <input
+                          type="text"
+                          value={university.colors.secondary}
+                          onChange={(e) => setUniversity({ ...university, colors: { ...university.colors, secondary: e.target.value } })}
+                          className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none font-mono text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Logo Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-navy mb-1">Logo / Emblem</label>
+                      <div className="flex items-center gap-4">
+                        {university.logo && (
+                          <img src={university.logo} alt="Logo" className="w-16 h-16 rounded-full object-cover border-2 border-gray-200" />
+                        )}
+                        <label className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-navy hover:bg-navy/5 transition-colors">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  setUniversity({ ...university, logo: ev.target?.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                          <Camera className="w-5 h-5 text-gray-400" />
+                          <span className="text-sm text-gray-500">{university.logo ? "Change Logo" : "Upload Logo"}</span>
+                        </label>
+                        {university.logo && (
+                          <button
+                            onClick={() => setUniversity({ ...university, logo: "" })}
+                            className="text-xs text-red-500 hover:text-red-700"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Preview */}
+                <div className="mt-8 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                  <h3 className="text-sm font-semibold text-navy mb-4">Preview</h3>
+                  <div className="flex items-center gap-4">
+                    {university.logo ? (
+                      <img src={university.logo} alt="Logo" className="w-14 h-14 rounded-full object-cover border-2" style={{ borderColor: university.colors.secondary }} />
+                    ) : (
+                      <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: university.colors.secondary }}>
+                        <span className="text-lg font-bold" style={{ color: university.colors.primary }}>{initials}</span>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-lg font-bold" style={{ color: university.colors.primary }}>{uniName}</p>
+                      <p className="text-sm" style={{ color: university.colors.secondary }}>{university.motto || "Your motto here"}</p>
+                      <p className="text-xs text-gray-500">{university.address || "Address"} | {university.phone || "Phone"} | {university.website || "Website"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ID Card Form */}
             {activeTab === "id-card" && (
               <div className="space-y-6">
@@ -428,7 +638,7 @@ export default function Dashboard() {
                             value={student.email}
                             onChange={(e) => setStudent({ ...student, email: e.target.value })}
                             className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none"
-                            placeholder="john.doe@pacificridge.edu"
+                            placeholder="john.doe@university.edu"
                           />
                         </div>
                         <div>
@@ -486,7 +696,7 @@ export default function Dashboard() {
                     <div className="mt-6 flex gap-4">
                       <button
                         onClick={generateIDCard}
-                        disabled={!student.firstName || !student.lastName}
+                        disabled={!student.firstName || !student.lastName || !university.name}
                         className="px-6 py-3 navy-bg text-white font-semibold rounded-lg hover:bg-dark-navy transition-colors disabled:opacity-50"
                       >
                         Generate ID Card
@@ -519,6 +729,7 @@ export default function Dashboard() {
                         issueDate={idIssueDate}
                         expirationDate={getExpirationDate(idIssueDate)}
                         docId={idDocId}
+                        university={university}
                       />
                     </DocumentPreview>
                   </div>
@@ -558,7 +769,7 @@ export default function Dashboard() {
                           value={scheduleStudent.studentId}
                           onChange={(e) => setScheduleStudent({ ...scheduleStudent, studentId: e.target.value })}
                           className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none font-mono"
-                          placeholder="PRU2600001"
+                          placeholder="HU2600001"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
@@ -658,7 +869,7 @@ export default function Dashboard() {
                     <div className="flex gap-4">
                       <button
                         onClick={generateSchedule}
-                        disabled={!scheduleStudent.name}
+                        disabled={!scheduleStudent.name || !university.name}
                         className="px-6 py-3 navy-bg text-white font-semibold rounded-lg hover:bg-dark-navy transition-colors disabled:opacity-50"
                       >
                         Generate Schedule
@@ -697,6 +908,7 @@ export default function Dashboard() {
                           studentId={scheduleStudent.studentId}
                           issueDate={getIssueDate()}
                           docId={scheduleDocId}
+                          university={university}
                         />
                       </DocumentPreview>
                     </div>
@@ -737,7 +949,7 @@ export default function Dashboard() {
                             value={receiptStudent.studentId}
                             onChange={(e) => setReceiptStudent({ ...receiptStudent, studentId: e.target.value })}
                             className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-navy focus:outline-none font-mono"
-                            placeholder="PRU2600001"
+                            placeholder="HU2600001"
                           />
                         </div>
                       </div>
@@ -781,7 +993,7 @@ export default function Dashboard() {
                     <div className="flex gap-4">
                       <button
                         onClick={generateReceipt}
-                        disabled={!receiptStudent.name}
+                        disabled={!receiptStudent.name || !university.name}
                         className="px-6 py-3 navy-bg text-white font-semibold rounded-lg hover:bg-dark-navy transition-colors disabled:opacity-50"
                       >
                         Generate Receipt
@@ -824,6 +1036,7 @@ export default function Dashboard() {
                           studentName={receiptStudent.name}
                           studentId={receiptStudent.studentId}
                           docId={receiptDocId}
+                          university={university}
                         />
                       </DocumentPreview>
                     </div>
