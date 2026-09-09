@@ -77,7 +77,7 @@ export async function revokeDocument(docId: string) {
   );
   const snapshot = await getDocs(q);
   if (!snapshot.empty) {
-    await updateDoc(doc(snapshot.docs[0].id, "documents"), {
+    await updateDoc(doc(db, "documents", snapshot.docs[0].id), {
       status: "revoked",
     });
   }
@@ -91,6 +91,6 @@ export async function deleteDocument(docId: string) {
   );
   const snapshot = await getDocs(q);
   if (!snapshot.empty) {
-    await deleteDoc(doc(snapshot.docs[0].id, "documents"));
+    await deleteDoc(doc(db, "documents", snapshot.docs[0].id));
   }
 }
