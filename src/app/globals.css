@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8f9fa;
+  --foreground: #1a1a2e;
+  --navy: #1a1a6e;
+  --gold: #c5a55a;
+  --light-gold: #f5ecd7;
+  --dark-navy: #0f0f42;
+  --accent: #2d2d8e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-navy: var(--navy);
+  --color-gold: var(--gold);
+  --color-light-gold: var(--light-gold);
+  --color-dark-navy: var(--dark-navy);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.university-gradient {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--dark-navy) 100%);
+}
+
+.gold-border {
+  border: 2px solid var(--gold);
+}
+
+.gold-text {
+  color: var(--gold);
+}
+
+.navy-bg {
+  background-color: var(--navy);
+}
+
+.gold-bg {
+  background-color: var(--gold);
+}
+
+.document-shadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.id-card-gradient {
+  background: linear-gradient(180deg, #1a1a6e 0%, #0f0f42 100%);
+}
+
+.holographic {
+  background: linear-gradient(135deg, 
+    rgba(197, 165, 90, 0.1) 0%, 
+    rgba(197, 165, 90, 0.3) 25%, 
+    rgba(197, 165, 90, 0.1) 50%,
+    rgba(197, 165, 90, 0.3) 75%,
+    rgba(197, 165, 90, 0.1) 100%
+  );
+  background-size: 200% 200%;
+  animation: holographic 3s ease-in-out infinite;
+}
+
+@keyframes holographic {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+.watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 60px;
+  font-weight: bold;
+  color: rgba(26, 26, 110, 0.05);
+  white-space: nowrap;
+  pointer-events: none;
+}
