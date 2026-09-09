@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { UNIVERSITY } from "@/lib/utils";
+import { type UniversityInfo, DEFAULT_UNIVERSITY } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 import {
   signInWithEmailAndPassword,
@@ -30,6 +30,14 @@ export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [confirmationResult, setConfirmationResult] = useState<unknown>(null);
+  const [university, setUniversity] = useState<UniversityInfo>(DEFAULT_UNIVERSITY);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("universityInfo");
+    if (saved) {
+      setUniversity(JSON.parse(saved));
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -163,19 +171,19 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 university-gradient items-center justify-center p-12">
         <div className="text-center text-white">
           <div className="w-24 h-24 rounded-full gold-bg flex items-center justify-center mx-auto mb-6">
-            <span className="text-navy text-4xl font-bold">{UNIVERSITY.shortName[0]}</span>
+            <span className="text-navy text-4xl font-bold">{university.shortName?.[0] || university.name?.[0] || "U"}</span>
           </div>
-          <h1 className="text-3xl font-bold mb-2">{UNIVERSITY.name}</h1>
-          <p className="text-gold text-sm tracking-wider mb-4">{UNIVERSITY.motto}</p>
+          <h1 className="text-3xl font-bold mb-2">{university.name || "University Name"}</h1>
+          <p className="text-gold text-sm tracking-wider mb-4">{university.motto || "Your Motto"}</p>
           <div className="w-16 h-1 gold-bg mx-auto mb-6" />
           <p className="text-white/70 text-sm max-w-xs mx-auto">
             Official document management system for authorized university staff.
             Generate student ID cards, class schedules, and tuition receipts.
           </p>
           <div className="mt-8 flex items-center justify-center gap-4 text-gold/60 text-xs">
-            <span>Est. {UNIVERSITY.established}</span>
-            <span>•</span>
-            <span>{UNIVERSITY.address}</span>
+            {university.established && <span>Est. {university.established}</span>}
+            {university.established && university.address && <span>•</span>}
+            {university.address && <span>{university.address}</span>}
           </div>
         </div>
       </div>
@@ -186,9 +194,9 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
             <div className="w-16 h-16 rounded-full gold-bg flex items-center justify-center mx-auto mb-4">
-              <span className="text-navy text-2xl font-bold">{UNIVERSITY.shortName[0]}</span>
+              <span className="text-navy text-2xl font-bold">{university.shortName?.[0] || university.name?.[0] || "U"}</span>
             </div>
-            <h1 className="text-xl font-bold text-navy">{UNIVERSITY.name}</h1>
+            <h1 className="text-xl font-bold text-navy">{university.name || "University Name"}</h1>
           </div>
 
           <div className="bg-white rounded-xl shadow-lg p-8">

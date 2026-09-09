@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { UNIVERSITY } from "@/lib/utils";
 import { Shield } from "lucide-react";
 
 export default function VerifyPage() {
@@ -9,11 +8,11 @@ export default function VerifyPage() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-full gold-bg flex items-center justify-center">
-              <span className="text-navy text-sm font-bold">{UNIVERSITY.shortName[0]}</span>
+              <span className="text-navy text-sm font-bold">D</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold">{UNIVERSITY.name}</h1>
-              <p className="text-gold text-xs">Document Verification</p>
+              <h1 className="text-lg font-bold">Document Verification</h1>
+              <p className="text-gold text-xs">Verify document authenticity</p>
             </div>
           </div>
         </div>
